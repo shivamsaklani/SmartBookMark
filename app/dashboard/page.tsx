@@ -5,16 +5,25 @@ import { AppHeader } from '@/components/AppHeader';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Bookmark as BookmarkIcon } from 'lucide-react';
 import { Bookmark, SortOption } from '@/lib/types';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks/use-redux';
 import { setSelectedTag, setSortOption } from '@/lib/BookmarkSlice';
+import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
+
   const { bookmarks, searchQuery, sortOption, viewMode, selectedTag} = useAppSelector((state)=>state.bookmark);
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
-
+  const {user} = useAppSelector((state)=>state.auth);
+//     useEffect(() => {
+//   if (!user) {
+//     router.push("/");
+//   }
+// }, [user, router]);
+// if (!user) return null;
   const filtered = useMemo(() => {
     let result = bookmarks;
     if (searchQuery) {
@@ -36,9 +45,8 @@ export default function Dashboard() {
 
   const handleEdit = (b: Bookmark) => { setEditingBookmark(b); setDialogOpen(true); };
   const handleAdd = () => { setEditingBookmark(null); setDialogOpen(true); };
-
-  return (
-    <div className="flex-1 flex flex-col min-h-screen">
+  return (<>
+     <div className="flex-1 flex flex-col min-h-screen">
       <AppHeader onAddBookmark={handleAdd} />
       <main className="flex-1 p-4 lg:p-6">
         <div className="flex items-center justify-between mb-4">
@@ -83,5 +91,6 @@ export default function Dashboard() {
       </main>
       <BookmarkDialog open={dialogOpen} onOpenChange={setDialogOpen} editBookmark={editingBookmark} />
     </div>
+    </>
   );
 }
