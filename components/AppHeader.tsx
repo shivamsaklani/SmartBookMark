@@ -1,7 +1,7 @@
 import { Search, Plus, LayoutGrid, List} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useAppDispatch, useAppSelector } from '@/hooks/use-redux';
 import { setSearchQuery, setViewMode } from '@/lib/BookmarkSlice';
 import { Input } from './ui/input';
@@ -16,9 +16,8 @@ export function AppHeader({ onAddBookmark }: AppHeaderProps) {
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background/80 backdrop-blur-sm px-4">
-      <SidebarProvider>
-      <SidebarTrigger className="bg-green-300" />
-      </SidebarProvider>
+      <SidebarTrigger />
+
       <div className="relative flex-1 max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
