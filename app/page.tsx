@@ -20,7 +20,7 @@ export default function Page() {
         {
           provider: "google",
           options: {
-            redirectTo: process.env.NEXT_PUBLIC_CALLBACK_URL,
+            redirectTo: `${window.location.origin}/dashboard`,
           },
         }
       );

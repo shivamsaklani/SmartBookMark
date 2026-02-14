@@ -29,7 +29,7 @@ const initialState: BookmarkState = {
 export const fetchBookmarks = createAsyncThunk(
   "bookmark/fetchBookmarks",
   async () => {
-    const response = await axios.get("/api/routes/Bookmarks");
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}Bookmarks`);
     return response.data;
   }
 );
@@ -37,7 +37,7 @@ export const fetchBookmarks = createAsyncThunk(
 export const addBookmark = createAsyncThunk(
   "bookmark/addBookmark",
   async (bookmark: Omit<Bookmark, "id" | "createdAt" | "visits">) => {
-    const response = await axios.post("/api/routes/Bookmarks", bookmark);
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}Bookmarks`, bookmark);
     return response.data;
   }
 );
@@ -46,7 +46,7 @@ export const updateBookmark = createAsyncThunk(
   "bookmark/updateBookmark",
   async ({ id, updates }: { id: string; updates: Partial<Bookmark> }) => {
     // Optimistic update handled in extraReducers if needed, but here we wait for server
-    const response = await axios.put(`/api/routes/Bookmarks/${id}`, updates);
+    const response = await axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}Bookmarks/${id}`, updates);
     return response.data;
   }
 );
@@ -54,7 +54,7 @@ export const updateBookmark = createAsyncThunk(
 export const deleteBookmark = createAsyncThunk(
   "bookmark/deleteBookmark",
   async (id: string) => {
-    await axios.delete(`/api/routes/Bookmarks/${id}`);
+    await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}Bookmarks/${id}`);
     return id;
   }
 );
@@ -66,7 +66,7 @@ export const toggleFavorite = createAsyncThunk(
     const bookmark = state.bookmark.bookmarks.find((b) => b.id === id);
     if (!bookmark) throw new Error("Bookmark not found");
 
-    const response = await axios.put(`/api/routes/Bookmarks/${id}`, {
+    const response = await axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}Bookmarks/${id}`, {
       isFavorite: !bookmark.isFavorite,
     });
     return response.data;
@@ -76,7 +76,7 @@ export const toggleFavorite = createAsyncThunk(
 export const fetchCollections = createAsyncThunk(
   "bookmark/fetchCollections",
   async () => {
-    const response = await axios.get("/api/routes/collections");
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}collections`);
     return response.data;
   }
 );
@@ -84,7 +84,7 @@ export const fetchCollections = createAsyncThunk(
 export const addCollection = createAsyncThunk(
   "bookmark/addCollection",
   async (collection: Omit<Collection, "id">) => {
-    const response = await axios.post("/api/routes/collections", collection);
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}collections`, collection);
     return response.data;
   }
 );
@@ -92,7 +92,7 @@ export const addCollection = createAsyncThunk(
 export const updateCollection = createAsyncThunk(
   "bookmark/updateCollection",
   async ({ id, updates }: { id: string; updates: Partial<Collection> }) => {
-    const response = await axios.put(`/api/routes/collections/${id}`, updates);
+    const response = await axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}collections/${id}`, updates);
     return response.data;
   }
 );
@@ -100,7 +100,7 @@ export const updateCollection = createAsyncThunk(
 export const deleteCollection = createAsyncThunk(
   "bookmark/deleteCollection",
   async (id: string) => {
-    await axios.delete(`/api/routes/collections/${id}`);
+    await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}collections/${id}`);
     return id;
   }
 );
