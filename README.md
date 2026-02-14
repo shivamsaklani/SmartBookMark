@@ -20,6 +20,29 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Project Structure
+
+A brief overview of the project's main directories and files:
+
+- **`/app`**: Contains the Next.js App Router structure.
+  - `api/`: API routes for backend logic.
+  - `dashboard/`: Dashboard pages and layout.
+  - `page.tsx`: The main landing page.
+  - `globals.css`: Global styles.
+- **`/components`**: Reusable React components.
+  - `ui/`: Shared UI components.
+  - Feature-specific components like `AppHeader`, `AppSidebar`, `BookmarkCard`, etc.
+- **`/lib`**: Utility functions, Redux store setup, and database clients.
+  - `store/`: Redux store configuration.
+  - `BookmarkSlice.ts`: Redux slice for bookmark management.
+  - `supabase.ts`: Supabase client configuration.
+  - `prisma/`: Prisma client and schema.
+- **`/hooks`**: Custom React hooks.
+  - `use-mobile.ts`: Hook for handling mobile responsiveness.
+  - `use-redux.ts`: Custom hook for Redux usage.
+- **`/prisma`**: Database schema and migrations.
+- **`/public`**: Static assets.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
