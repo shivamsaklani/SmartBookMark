@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/Appsidebar";
 import { Toaster } from "react-hot-toast";
-import { useAppDispatch } from "@/hooks/use-redux";
+import { useAppDispatch, useAppSelector } from "@/hooks/use-redux";
 import {
   fetchBookmarks,
   fetchCollections,
@@ -25,81 +25,88 @@ export default function DashboardLayout({
 }) {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const { user } = useAppSelector((state) => state.auth);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+useEffect(() => {
+  const checkAuth = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-      if (session?.user) {
-        const user: User = {
-          id: session.user.id,
-          email: session.user.email!,
-          user_metadata: {
-            name: session.user.user_metadata.full_name || session.user.email,
-            avatar_url: session.user.user_metadata.avatar_url,
-          },
-        };
-        dispatch(setUser(user));
-      }
-      // Removed generic router.push('/') redirect to avoid race conditions
+    if (!session) {
+      router.replace("/");
+      return;
+    }
+
+    const user: User = {
+      id: session.user.id,
+      email: session.user.email!,
+      user_metadata: {
+        name:
+          session.user.user_metadata.full_name ||
+          session.user.email,
+        avatar_url: session.user.user_metadata.avatar_url,
+      },
     };
 
-    checkAuth();
-    dispatch(fetchBookmarks());
-    dispatch(fetchCollections());
+    dispatch(setUser(user));
+  };
 
-    const channel = supabase
-      .channel("realtime-bookmarks")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "bookmarks" },
-        async (payload) => {
-          if (payload.eventType === "DELETE") {
-            dispatch(deleteBookmarkRealtime(payload.old.id));
-            return;
-          }
+  checkAuth();
 
-          const fetchBookmark = async (id: string) => {
-            const { data, error } = await supabase
-              .from("bookmarks")
-              .select("*, tags(tag(*))")
-              .eq("id", id)
-              .single();
+  dispatch(fetchBookmarks());
+  dispatch(fetchCollections());
 
-            if (error || !data) return null;
-
-            // Transform data to match Bookmark interface
-            const formattedBookmark: Bookmark = {
-              id: data.id,
-              url: data.url,
-              title: data.title,
-              description: data.description,
-              isFavorite: data.isFavorite,
-              collectionId: data.collectionId,
-              createdAt: data.createdAt,
-              tags: data.tags.map((t: any) => t.tag.name),
-            };
-            return formattedBookmark;
-          };
-
-          if (payload.eventType === "INSERT") {
-            const newBookmark = await fetchBookmark(payload.new.id);
-            if (newBookmark) dispatch(addBookmarkRealtime(newBookmark));
-          } else if (payload.eventType === "UPDATE") {
-            const updatedBookmark = await fetchBookmark(payload.new.id);
-            if (updatedBookmark) dispatch(updateBookmarkRealtime(updatedBookmark));
-          }
+  const channel = supabase
+    .channel("realtime-bookmarks")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "bookmarks" },
+      async (payload) => {
+        if (payload.eventType === "DELETE") {
+          dispatch(deleteBookmarkRealtime(payload.old.id));
+          return;
         }
-      )
-      .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+        const fetchBookmark = async (id: string) => {
+          const { data, error } = await supabase
+            .from("bookmarks")
+            .select("*, tags(tag(*))")
+            .eq("id", id)
+            .single();
 
-  }, [dispatch, router]);
+          if (error || !data) return null;
+
+          return {
+            id: data.id,
+            url: data.url,
+            title: data.title,
+            description: data.description,
+            isFavorite: data.isFavorite,
+            collectionId: data.collectionId,
+            createdAt: data.createdAt,
+            tags: data.tags.map((t: any) => t.tag.name),
+          };
+        };
+
+        if (payload.eventType === "INSERT") {
+          const newBookmark = await fetchBookmark(payload.new.id);
+          if (newBookmark) dispatch(addBookmarkRealtime(newBookmark));
+        } else if (payload.eventType === "UPDATE") {
+          const updatedBookmark = await fetchBookmark(payload.new.id);
+          if (updatedBookmark)
+            dispatch(updateBookmarkRealtime(updatedBookmark));
+        }
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [dispatch, router]);
+
+  if (!user) return null;
 
   return (
     <TooltipProvider>

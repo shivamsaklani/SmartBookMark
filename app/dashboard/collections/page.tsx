@@ -6,10 +6,10 @@ import { FolderOpen, Trash2, Briefcase, Palette, Code, Newspaper, Zap, Graduatio
 import { useState } from 'react';
 import { BookmarkDialog } from '@/components/BookmarkDialog';
 import { CollectionDialog } from '@/components/CollectionDialog';
-import { DashboardSkeleton } from '@/components/DashboardSkeleton';
 import { useAppDispatch, useAppSelector } from '@/hooks/use-redux';
 import { deleteCollection } from '@/lib/BookmarkSlice';
 import { Collection } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Briefcase, Palette, Code, Newspaper, Zap, GraduationCap, FolderOpen
@@ -21,7 +21,6 @@ export default function Collections() {
   const [bookmarkDialogOpen, setBookmarkDialogOpen] = useState(false);
   const [collectionDialogOpen, setCollectionDialogOpen] = useState(false);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
-
   const handleEditCollection = (c: Collection) => {
     setEditingCollection(c);
     setCollectionDialogOpen(true);
@@ -47,39 +46,66 @@ export default function Collections() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {loading ? (
-            <DashboardSkeleton />
-          ) : collections.map(c => {
-            const count = bookmarks.filter(b => b.collectionId === c.id).length;
-            const Icon = iconMap[c.icon] || FolderOpen;
-            return (
-              <Card key={c.id} className="group hover:shadow-md transition-all hover:-translate-y-0.5">
+          {loading
+            ? Array.from({ length: 6 }).map((_, i) => (
+              <Card
+                key={i}
+                className="border shadow-sm animate-pulse"
+              >
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between">
+                    {/* Left Section */}
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `hsl(${c.color} / 0.15)`, color: `hsl(${c.color})` }}>
-                        <Icon className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-sm">{c.name}</h3>
-                        <p className="text-xs text-muted-foreground">{count} bookmark{count !== 1 ? 's' : ''}</p>
+                      {/* Icon Skeleton */}
+                      <Skeleton className="h-10 w-10 rounded-lg" />
+
+                      {/* Title + Count */}
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-16" />
                       </div>
                     </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditCollection(c)}>
-                        <Edit className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => {
-                        dispatch(deleteCollection(c.id));
-                      }}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+
+                    {/* Right Action Buttons */}
+                    <div className="flex gap-2">
+                      <Skeleton className="h-7 w-7 rounded-md" />
+                      <Skeleton className="h-7 w-7 rounded-md" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            );
-          })}
+            ))
+            : collections.map(c => {
+              const count = bookmarks.filter(b => b.collectionId === c.id).length;
+              const Icon = iconMap[c.icon] || FolderOpen;
+              return (
+                <Card key={c.id} className="group hover:shadow-md transition-all hover:-translate-y-0.5">
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `hsl(${c.color} / 0.15)`, color: `hsl(${c.color})` }}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-sm">{c.name}</h3>
+                          <p className="text-xs text-muted-foreground">{count} bookmark{count !== 1 ? 's' : ''}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditCollection(c)}>
+                          <Edit className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => {
+                          dispatch(deleteCollection(c.id));
+                        }}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
         </div>
       </main>
       <BookmarkDialog open={bookmarkDialogOpen} onOpenChange={setBookmarkDialogOpen} />

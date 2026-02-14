@@ -14,7 +14,7 @@ export function DashboardSkeleton() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {Array.from({ length: 9 }).map((_, i) => (
+                {Array.from({ length: 6}).map((_, i) => (
                     <div key={i} className="flex flex-col space-y-3 p-4 border rounded-lg">
                         <div className="space-y-2">
                             <Skeleton className="h-4 w-3/4" />

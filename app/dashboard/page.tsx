@@ -9,17 +9,13 @@ import { Bookmark, SortOption } from '@/lib/types';
 import { useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks/use-redux';
 import { setSelectedTag, setSortOption } from '@/lib/BookmarkSlice';
-import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
 
   const { bookmarks, searchQuery, sortOption, viewMode, selectedTag, loading } = useAppSelector((state) => state.bookmark);
   const dispatch = useAppDispatch();
-  const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
-  const { user } = useAppSelector((state) => state.auth);
-
 
   const filtered = useMemo(() => {
     let result = bookmarks ?? [];
@@ -54,7 +50,6 @@ export default function Dashboard() {
   const handleEdit = (b: Bookmark) => { setEditingBookmark(b); setDialogOpen(true); };
   const handleAdd = () => { setEditingBookmark(null); setDialogOpen(true); };
 
-  if (!user) return null;
 
   return (<>
     <div className="flex-1 flex flex-col min-h-screen">
