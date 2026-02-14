@@ -1,13 +1,15 @@
 "use client"
-import { Bookmark, Star, FolderOpen, Tag } from 'lucide-react';
+import { Bookmark, Star, FolderOpen, Tag, LogOut } from 'lucide-react';
 
 import {
     Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
     SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useAppSelector } from '@/hooks/use-redux';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
+import { Button } from './ui/button';
 
 const navItems = [
     { title: 'All Bookmarks', url: '/dashboard', icon: Bookmark },
@@ -18,18 +20,22 @@ const navItems = [
 
 export function AppSidebar() {
     const path = usePathname();
-    const { bookmarks } = useAppSelector((state) => state.bookmark);
-    const favCount = bookmarks.filter(b => b.isFavorite).length;
+    const router = useRouter();
+    const { user } = useAppSelector((state) => state.auth);
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        router.push('/');
+    };
 
     return (
         <Sidebar className="border-r-0">
             <div className="flex h-14 items-center gap-2 px-4 border-b border-sidebar-border">
                 <Bookmark className="h-5 w-5 text-sidebar-primary" />
-                <span className="font-semibold text-sidebar-foreground text-lg">Bookmark</span>
+                <span className="font-semibold text-sidebar-foreground text-lg">Bookmarks</span>
             </div>
             <SidebarContent>
                 <SidebarGroup>
-                    <SidebarGroupLabel className="text-xs uppercase tracking-wider text-sidebar-foreground/50">Navigate</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {navItems.map(item => (
@@ -54,15 +60,35 @@ export function AppSidebar() {
                 </SidebarGroup>
             </SidebarContent>
             <div className="mt-auto border-t border-sidebar-border p-4">
-                <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground text-sm font-medium">
-                        JD
-                    </div>
-                    <div className="text-sm">
-                        <p className="font-medium text-sidebar-foreground">Jane Doe</p>
-                        <p className="text-sidebar-foreground/50 text-xs">jane@example.com</p>
+                <div className="flex items-center gap-3 mb-4">
+                    {user?.user_metadata?.avatar_url ? (
+                        <img
+                            src={user.user_metadata.avatar_url}
+                            alt={user.user_metadata.name || "User"}
+                            className="h-8 w-8 rounded-full object-cover"
+                        />
+                    ) : (
+                        <div className="h-8 w-8 rounded-full bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground text-sm font-medium">
+                            {user?.email?.charAt(0).toUpperCase() || "U"}
+                        </div>
+                    )}
+                    <div className="text-sm overflow-hidden">
+                        <p className="font-medium text-sidebar-foreground truncate">
+                            {user?.user_metadata?.name || "User"}
+                        </p>
+                        <p className="text-sidebar-foreground/50 text-xs truncate">
+                            {user?.email}
+                        </p>
                     </div>
                 </div>
+                <Button
+                    variant="destructive"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-sidebar-foreground/70  dark:bg-red-500 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-950/50"
+                >
+                    <LogOut className="h-4 w-4" />
+                    <span>Log Out</span>
+                </Button>
             </div>
         </Sidebar>
     );

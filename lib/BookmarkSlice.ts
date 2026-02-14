@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { Bookmark, Collection, SortOption, ViewMode } from "@/lib/types";
-import { bookmarks as initialBookmarks, collections as initialCollections } from "@/lib/mock-data";
+import axios from "axios";
 
 interface BookmarkState {
   bookmarks: Bookmark[];
@@ -9,16 +9,101 @@ interface BookmarkState {
   sortOption: SortOption;
   viewMode: ViewMode;
   selectedTag: string | null;
+  loading: boolean;
+  error: string | null;
 }
 
 const initialState: BookmarkState = {
-  bookmarks: initialBookmarks,
-  collections: initialCollections,
+  bookmarks: [],
+  collections: [],
   searchQuery: "",
   sortOption: "date",
   viewMode: "grid",
   selectedTag: null,
+  loading: false,
+  error: null,
 };
+
+// Async Thunks
+
+export const fetchBookmarks = createAsyncThunk(
+  "bookmark/fetchBookmarks",
+  async () => {
+    const response = await axios.get("/api/routes/Bookmarks");
+    return response.data;
+  }
+);
+
+export const addBookmark = createAsyncThunk(
+  "bookmark/addBookmark",
+  async (bookmark: Omit<Bookmark, "id" | "createdAt" | "visits">) => {
+    const response = await axios.post("/api/routes/Bookmarks", bookmark);
+    return response.data;
+  }
+);
+
+export const updateBookmark = createAsyncThunk(
+  "bookmark/updateBookmark",
+  async ({ id, updates }: { id: string; updates: Partial<Bookmark> }) => {
+    // Optimistic update handled in extraReducers if needed, but here we wait for server
+    const response = await axios.put(`/api/routes/Bookmarks/${id}`, updates);
+    return response.data;
+  }
+);
+
+export const deleteBookmark = createAsyncThunk(
+  "bookmark/deleteBookmark",
+  async (id: string) => {
+    await axios.delete(`/api/routes/Bookmarks/${id}`);
+    return id;
+  }
+);
+
+export const toggleFavorite = createAsyncThunk(
+  "bookmark/toggleFavorite",
+  async (id: string, { getState }) => {
+    const state = getState() as { bookmark: BookmarkState };
+    const bookmark = state.bookmark.bookmarks.find((b) => b.id === id);
+    if (!bookmark) throw new Error("Bookmark not found");
+
+    const response = await axios.put(`/api/routes/Bookmarks/${id}`, {
+      isFavorite: !bookmark.isFavorite,
+    });
+    return response.data;
+  }
+);
+
+export const fetchCollections = createAsyncThunk(
+  "bookmark/fetchCollections",
+  async () => {
+    const response = await axios.get("/api/routes/collections");
+    return response.data;
+  }
+);
+
+export const addCollection = createAsyncThunk(
+  "bookmark/addCollection",
+  async (collection: Omit<Collection, "id">) => {
+    const response = await axios.post("/api/routes/collections", collection);
+    return response.data;
+  }
+);
+
+export const updateCollection = createAsyncThunk(
+  "bookmark/updateCollection",
+  async ({ id, updates }: { id: string; updates: Partial<Collection> }) => {
+    const response = await axios.put(`/api/routes/collections/${id}`, updates);
+    return response.data;
+  }
+);
+
+export const deleteCollection = createAsyncThunk(
+  "bookmark/deleteCollection",
+  async (id: string) => {
+    await axios.delete(`/api/routes/collections/${id}`);
+    return id;
+  }
+);
 
 const bookmarkSlice = createSlice({
   name: "bookmark",
@@ -27,64 +112,86 @@ const bookmarkSlice = createSlice({
     setSearchQuery: (state, action: PayloadAction<string>) => {
       state.searchQuery = action.payload;
     },
-
     setSortOption: (state, action: PayloadAction<SortOption>) => {
       state.sortOption = action.payload;
     },
-
     setViewMode: (state, action: PayloadAction<ViewMode>) => {
       state.viewMode = action.payload;
     },
-
     setSelectedTag: (state, action: PayloadAction<string | null>) => {
       state.selectedTag = action.payload;
     },
-
-    addBookmark: (
-      state,
-      action: PayloadAction<Omit<Bookmark, "id" | "createdAt" | "visits">>
-    ) => {
-      state.bookmarks.unshift({
-        ...action.payload,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString().split("T")[0],
-        visits: 0,
-      });
+    // Realtime Reducers
+    addBookmarkRealtime: (state, action: PayloadAction<Bookmark>) => {
+      state.bookmarks.unshift(action.payload);
     },
-
-    updateBookmark: (
-      state,
-      action: PayloadAction<{ id: string; updates: Partial<Bookmark> }>
-    ) => {
-      const { id, updates } = action.payload;
-      const bookmark = state.bookmarks.find((b) => b.id === id);
-      if (bookmark) Object.assign(bookmark, updates);
+    updateBookmarkRealtime: (state, action: PayloadAction<Bookmark>) => {
+      const index = state.bookmarks.findIndex((b) => b.id === action.payload.id);
+      if (index !== -1) {
+        state.bookmarks[index] = action.payload;
+      }
     },
-
-    deleteBookmark: (state, action: PayloadAction<string>) => {
+    deleteBookmarkRealtime: (state, action: PayloadAction<string>) => {
       state.bookmarks = state.bookmarks.filter((b) => b.id !== action.payload);
     },
-
-    toggleFavorite: (state, action: PayloadAction<string>) => {
-      const bookmark = state.bookmarks.find((b) => b.id === action.payload);
-      if (bookmark) bookmark.isFavorite = !bookmark.isFavorite;
-    },
-
-    addCollection: (
-      state,
-      action: PayloadAction<Omit<Collection, "id">>
-    ) => {
-      state.collections.push({
-        ...action.payload,
-        id: Date.now().toString(),
+  },
+  extraReducers: (builder) => {
+    builder
+      // Fetch Bookmarks
+      .addCase(fetchBookmarks.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchBookmarks.fulfilled, (state, action) => {
+        state.loading = false;
+        state.bookmarks = action.payload;
+      })
+      .addCase(fetchBookmarks.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Failed to fetch bookmarks";
+      })
+      // Add Bookmark
+      .addCase(addBookmark.fulfilled, (state, action) => {
+        state.bookmarks.unshift(action.payload);
+      })
+      // Update Bookmark & Toggle Favorite
+      .addCase(updateBookmark.fulfilled, (state, action) => {
+        const index = state.bookmarks.findIndex((b) => b.id === action.payload.id);
+        if (index !== -1) {
+          state.bookmarks[index] = action.payload;
+        }
+      })
+      .addCase(toggleFavorite.fulfilled, (state, action) => {
+        const index = state.bookmarks.findIndex((b) => b.id === action.payload.id);
+        if (index !== -1) {
+          state.bookmarks[index] = action.payload;
+        }
+      })
+      // Delete Bookmark
+      .addCase(deleteBookmark.fulfilled, (state, action) => {
+        state.bookmarks = state.bookmarks.filter((b) => b.id !== action.payload);
+      })
+      // Fetch Collections
+      .addCase(fetchCollections.fulfilled, (state, action) => {
+        state.collections = action.payload;
+      })
+      // Add Collection
+      .addCase(addCollection.fulfilled, (state, action) => {
+        state.collections.push(action.payload);
+      })
+      // Delete Collection
+      .addCase(deleteCollection.fulfilled, (state, action) => {
+        state.collections = state.collections.filter(
+          (c) => c.id !== action.payload
+        );
+      })
+      // Update Collection
+      .addCase(updateCollection.fulfilled, (state, action) => {
+        const index = state.collections.findIndex((c) => c.id === action.payload.id);
+        if (index !== -1) {
+          state.collections[index] = action.payload;
+        }
       });
-    },
-
-    deleteCollection: (state, action: PayloadAction<string>) => {
-      state.collections = state.collections.filter(
-        (c) => c.id !== action.payload
-      );
-    },
   },
 });
 
@@ -93,12 +200,9 @@ export const {
   setSortOption,
   setViewMode,
   setSelectedTag,
-  addBookmark,
-  updateBookmark,
-  deleteBookmark,
-  toggleFavorite,
-  addCollection,
-  deleteCollection,
+  addBookmarkRealtime,
+  updateBookmarkRealtime,
+  deleteBookmarkRealtime,
 } = bookmarkSlice.actions;
 
 export default bookmarkSlice.reducer;

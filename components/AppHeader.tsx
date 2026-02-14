@@ -1,17 +1,18 @@
-import { Search, Plus, LayoutGrid, List} from 'lucide-react';
+import { Search, Plus, LayoutGrid, List } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useAppDispatch, useAppSelector } from '@/hooks/use-redux';
 import { setSearchQuery, setViewMode } from '@/lib/BookmarkSlice';
 import { Input } from './ui/input';
+import { ThemeToggle } from './theme-toggle';
 
 interface AppHeaderProps {
   onAddBookmark: () => void;
 }
 
 export function AppHeader({ onAddBookmark }: AppHeaderProps) {
-  const { searchQuery, viewMode} = useAppSelector((state)=>state.bookmark);
+  const { searchQuery, viewMode } = useAppSelector((state) => state.bookmark);
   const dispatch = useAppDispatch();
 
   return (
@@ -28,6 +29,7 @@ export function AppHeader({ onAddBookmark }: AppHeaderProps) {
         />
       </div>
       <div className="ml-auto flex items-center gap-2">
+        <ThemeToggle />
         <div className="hidden sm:flex items-center border rounded-lg p-0.5 bg-secondary">
           <Button
             variant={viewMode === 'grid' ? 'default' : 'ghost'}

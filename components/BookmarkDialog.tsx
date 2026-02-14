@@ -19,7 +19,7 @@ interface BookmarkDialogProps {
 }
 
 export function BookmarkDialog({ open, onOpenChange, editBookmark }: BookmarkDialogProps) {
-  const { collections } = useAppSelector((state) => state.bookmark);
+  const { collections, bookmarks } = useAppSelector((state) => state.bookmark);
   const dispatch = useAppDispatch();
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
@@ -112,6 +112,25 @@ export function BookmarkDialog({ open, onOpenChange, editBookmark }: BookmarkDia
                 ))}
               </div>
             )}
+            {/* Tag Suggestions */}
+            <div>
+              <p className="text-xs text-muted-foreground mb-1.5 mt-2">Suggested Tags:</p>
+              <div className="flex flex-wrap gap-1">
+                {Array.from(new Set(bookmarks.flatMap((b) => b.tags)))
+                  .filter((t) => !tags.includes(t))
+                  .slice(0, 10) // Limit suggestions
+                  .map((t) => (
+                    <Badge
+                      key={t}
+                      variant="outline"
+                      className="cursor-pointer hover:bg-secondary transition-colors"
+                      onClick={() => setTags([...tags, t])}
+                    >
+                      + {t}
+                    </Badge>
+                  ))}
+              </div>
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label>Collection</Label>

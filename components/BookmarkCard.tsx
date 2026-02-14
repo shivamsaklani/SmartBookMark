@@ -1,9 +1,13 @@
-import { Heart, Trash2, ExternalLink, Copy } from 'lucide-react';
+import { ExternalLink, MoreVertical, Trash2, Edit, Star, Globe, Heart, Copy, EditIcon, BookMarked } from 'lucide-react';
 import { Bookmark } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import toast from 'react-hot-toast';
+
+import { useAppDispatch } from '@/hooks/use-redux';
+import { toggleFavorite, deleteBookmark } from '@/lib/BookmarkSlice';
+import { formatDate } from '@/lib/utils';
 
 interface BookmarkCardProps {
   bookmark: Bookmark;
@@ -11,7 +15,7 @@ interface BookmarkCardProps {
 }
 
 export function BookmarkCard({ bookmark, onEdit }: BookmarkCardProps) {
-//   const { toggleFavorite, deleteBookmark } = useBookmarks();
+  const dispatch = useAppDispatch();
 
   const copyLink = () => {
     navigator.clipboard.writeText(bookmark.url);
@@ -23,12 +27,7 @@ export function BookmarkCard({ bookmark, onEdit }: BookmarkCardProps) {
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary">
-            <img
-              src={bookmark.favicon}
-              alt=""
-              className="h-5 w-5"
-              onError={e => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
-            />
+            <BookMarked className="h-5 w-5 text-muted-foreground" />
           </div>
           <div className="flex-1 min-w-0">
             <a
@@ -51,22 +50,19 @@ export function BookmarkCard({ bookmark, onEdit }: BookmarkCardProps) {
           </div>
         </div>
         <div className="flex items-center justify-between mt-3 pt-3 border-t">
-          <span className="text-[11px] text-muted-foreground">{bookmark.createdAt}</span>
+          <span className="text-[11px] text-muted-foreground">{formatDate(bookmark.createdAt)}</span>
           <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => 
-                // toggleFavorite(bookmark.id)
-                alert("ok")
-                }>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => dispatch(toggleFavorite(bookmark.id))}>
               <Heart className={`h-3.5 w-3.5 ${bookmark.isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
             </Button>
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={copyLink}>
               <Copy className="h-3.5 w-3.5" />
             </Button>
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(bookmark)}>
-              <ExternalLink className="h-3.5 w-3.5" />
+              <EditIcon className="h-3.5 w-3.5" />
             </Button>
             <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => {
-            //   deleteBookmark(bookmark.id);
+              dispatch(deleteBookmark(bookmark.id));
               toast.success('Bookmark deleted');
             }}>
               <Trash2 className="h-3.5 w-3.5" />
