@@ -1,28 +1,25 @@
 "use client"
 import { BookmarkCard } from '@/components/BookmarkCard';
 import { BookmarkDialog } from '@/components/BookmarkDialog';
+import { DashboardSkeleton } from '@/components/DashboardSkeleton';
 import { AppHeader } from '@/components/AppHeader';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Bookmark as BookmarkIcon } from 'lucide-react';
 import { Bookmark, SortOption } from '@/lib/types';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks/use-redux';
 import { setSelectedTag, setSortOption } from '@/lib/BookmarkSlice';
 import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
 
-  const { bookmarks, searchQuery, sortOption, viewMode, selectedTag } = useAppSelector((state) => state.bookmark);
+  const { bookmarks, searchQuery, sortOption, viewMode, selectedTag, loading } = useAppSelector((state) => state.bookmark);
   const dispatch = useAppDispatch();
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
   const { user } = useAppSelector((state) => state.auth);
-  useEffect(() => {
-    if (!user) {
-      router.push("/");
-    }
-  }, [user, router]);
+
 
   const filtered = useMemo(() => {
     let result = bookmarks ?? [];
@@ -86,7 +83,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <DashboardSkeleton />
+        ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <BookmarkIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
             <h3 className="font-medium text-muted-foreground">No bookmarks found</h3>

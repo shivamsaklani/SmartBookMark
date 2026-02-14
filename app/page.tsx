@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { LandingHero } from '@/components/landing-hero';
 import { LandingFooter } from '@/components/landing-footer';
-import { useAppDispatch} from '@/hooks/use-redux';
+import { useAppDispatch } from '@/hooks/use-redux';
 import { User } from '@/lib/types';
 import { setUser } from '@/lib/Auth';
 import { supabase } from '@/lib/supabase';
@@ -20,7 +20,7 @@ export default function Page() {
         {
           provider: "google",
           options: {
-            redirectTo: `${window.location.origin}/dashboard`,
+            redirectTo: `${window.location.origin}/api/routes/auth/callback`,
           },
         }
       );

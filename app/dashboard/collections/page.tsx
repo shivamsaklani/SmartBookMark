@@ -6,6 +6,7 @@ import { FolderOpen, Trash2, Briefcase, Palette, Code, Newspaper, Zap, Graduatio
 import { useState } from 'react';
 import { BookmarkDialog } from '@/components/BookmarkDialog';
 import { CollectionDialog } from '@/components/CollectionDialog';
+import { DashboardSkeleton } from '@/components/DashboardSkeleton';
 import { useAppDispatch, useAppSelector } from '@/hooks/use-redux';
 import { deleteCollection } from '@/lib/BookmarkSlice';
 import { Collection } from '@/lib/types';
@@ -15,7 +16,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 export default function Collections() {
-  const { collections, bookmarks } = useAppSelector((state) => state.bookmark);
+  const { collections, bookmarks, loading } = useAppSelector((state) => state.bookmark);
   const dispatch = useAppDispatch();
   const [bookmarkDialogOpen, setBookmarkDialogOpen] = useState(false);
   const [collectionDialogOpen, setCollectionDialogOpen] = useState(false);
@@ -46,7 +47,9 @@ export default function Collections() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {collections.map(c => {
+          {loading ? (
+            <DashboardSkeleton />
+          ) : collections.map(c => {
             const count = bookmarks.filter(b => b.collectionId === c.id).length;
             const Icon = iconMap[c.icon] || FolderOpen;
             return (

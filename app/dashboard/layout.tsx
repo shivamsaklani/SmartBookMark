@@ -42,14 +42,14 @@ export default function DashboardLayout({
           },
         };
         dispatch(setUser(user));
-      } else {
-        router.push("/");
       }
+      // Removed generic router.push('/') redirect to avoid race conditions
     };
 
     checkAuth();
     dispatch(fetchBookmarks());
     dispatch(fetchCollections());
+
     const channel = supabase
       .channel("realtime-bookmarks")
       .on(
@@ -98,6 +98,7 @@ export default function DashboardLayout({
     return () => {
       supabase.removeChannel(channel);
     };
+
   }, [dispatch, router]);
 
   return (

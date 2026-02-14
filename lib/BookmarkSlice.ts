@@ -151,15 +151,29 @@ const bookmarkSlice = createSlice({
         state.error = action.error.message || "Failed to fetch bookmarks";
       })
       // Add Bookmark
+      .addCase(addBookmark.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(addBookmark.fulfilled, (state, action) => {
+        state.loading = false;
         state.bookmarks.unshift(action.payload);
       })
+      .addCase(addBookmark.rejected, (state) => {
+        state.loading = false;
+      })
       // Update Bookmark & Toggle Favorite
+      .addCase(updateBookmark.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(updateBookmark.fulfilled, (state, action) => {
+        state.loading = false;
         const index = state.bookmarks.findIndex((b) => b.id === action.payload.id);
         if (index !== -1) {
           state.bookmarks[index] = action.payload;
         }
+      })
+      .addCase(updateBookmark.rejected, (state) => {
+        state.loading = false;
       })
       .addCase(toggleFavorite.fulfilled, (state, action) => {
         const index = state.bookmarks.findIndex((b) => b.id === action.payload.id);
@@ -168,29 +182,64 @@ const bookmarkSlice = createSlice({
         }
       })
       // Delete Bookmark
+      .addCase(deleteBookmark.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(deleteBookmark.fulfilled, (state, action) => {
+        state.loading = false;
         state.bookmarks = state.bookmarks.filter((b) => b.id !== action.payload);
       })
+      .addCase(deleteBookmark.rejected, (state) => {
+        state.loading = false;
+      })
       // Fetch Collections
+      .addCase(fetchCollections.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(fetchCollections.fulfilled, (state, action) => {
+        state.loading = false;
         state.collections = action.payload;
       })
+      .addCase(fetchCollections.rejected, (state) => {
+        state.loading = false;
+      })
       // Add Collection
+      .addCase(addCollection.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(addCollection.fulfilled, (state, action) => {
+        state.loading = false;
         state.collections.push(action.payload);
       })
+      .addCase(addCollection.rejected, (state) => {
+        state.loading = false;
+      })
       // Delete Collection
+      .addCase(deleteCollection.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(deleteCollection.fulfilled, (state, action) => {
+        state.loading = false;
         state.collections = state.collections.filter(
           (c) => c.id !== action.payload
         );
       })
+      .addCase(deleteCollection.rejected, (state) => {
+        state.loading = false;
+      })
       // Update Collection
+      .addCase(updateCollection.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(updateCollection.fulfilled, (state, action) => {
+        state.loading = false;
         const index = state.collections.findIndex((c) => c.id === action.payload.id);
         if (index !== -1) {
           state.collections[index] = action.payload;
         }
+      })
+      .addCase(updateCollection.rejected, (state) => {
+        state.loading = false;
       });
   },
 });
