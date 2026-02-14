@@ -3,12 +3,12 @@ export interface Bookmark {
   url: string;
   title: string;
   description: string;
-  favicon: string;
+  // favicon: string;
   tags: string[];
   collectionId: string | null;
   isFavorite: boolean;
   createdAt: string;
-  visits: number;
+  // visits: number;
 }
 
 export interface Collection {
