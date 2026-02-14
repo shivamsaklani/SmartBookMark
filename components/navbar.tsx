@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Bookmark, Mail } from 'lucide-react';
+import { Bookmark } from 'lucide-react';
+import { GoogleIcon } from '@/components/GoogleIcon';
 import { User } from '@/lib/types';
 import { ThemeToggle } from './theme-toggle';
 import { Button } from '@/components/ui/button';
@@ -43,8 +44,9 @@ export function Navbar({ user, onSignIn, onSignOut }: NavbarProps) {
                 </Button>
               </>
             ) : (
-              <Button onClick={onSignIn} size="sm">
-                <span><Mail/></span>Sign In with Google
+              <Button onClick={onSignIn} size="sm" className="gap-2">
+                <GoogleIcon className="h-4 w-4" />
+                Sign In with Google
               </Button>
             )}
           </div>

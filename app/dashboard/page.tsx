@@ -18,32 +18,47 @@ export default function Dashboard() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
   const { user } = useAppSelector((state) => state.auth);
-      useEffect(() => {
+  useEffect(() => {
     if (!user) {
       router.push("/");
     }
   }, [user, router]);
-  if (!user) return null;
+
   const filtered = useMemo(() => {
-    let result = bookmarks;
+    let result = bookmarks ?? [];
+
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      result = result.filter((b: { title: string; url: string; tags: any[]; }) =>
-        b.title.toLowerCase().includes(q) ||
-        b.url.toLowerCase().includes(q) ||
-        b.tags.some((t: string | any[]) => t.includes(q))
+
+      result = result.filter((b: Bookmark) =>
+        b.title?.toLowerCase().includes(q) ||
+        b.url?.toLowerCase().includes(q) ||
+        (Array.isArray(b.tags) && b.tags.some(tag => tag.toLowerCase().includes(q)))
       );
     }
-    if (selectedTag) result = result.filter((b: { tags: string | any[]; }) => b.tags.includes(selectedTag));
-    result = [...result].sort((a, b) => {
-      if (sortOption === 'title') return a.title.localeCompare(b.title);
-      return b.createdAt.localeCompare(a.createdAt);
+
+    if (selectedTag) {
+      result = result.filter(
+        (b: Bookmark) => Array.isArray(b.tags) && b.tags.includes(selectedTag)
+      );
+    }
+
+    result = [...result].sort((a: Bookmark, b: Bookmark) => {
+      if (sortOption === "title") {
+        return (a.title ?? "").localeCompare(b.title ?? "");
+      }
+
+      return new Date(b.createdAt ?? 0).getTime() -
+        new Date(a.createdAt ?? 0).getTime();
     });
+
     return result;
   }, [bookmarks, searchQuery, sortOption, selectedTag]);
-
   const handleEdit = (b: Bookmark) => { setEditingBookmark(b); setDialogOpen(true); };
   const handleAdd = () => { setEditingBookmark(null); setDialogOpen(true); };
+
+  if (!user) return null;
+
   return (<>
     <div className="flex-1 flex flex-col min-h-screen">
       <AppHeader onAddBookmark={handleAdd} />
